@@ -1,46 +1,40 @@
 using API.Web;
-using API.Web.Components;
-using MySqlConnector;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add service defaults & Aspire client integrations.
+// Aspire defaults
 builder.AddServiceDefaults();
 
-// Add services to the container.
+// Razor components i Blazor:
 builder.Services.AddRazorComponents()
-    .AddInteractiveServerComponents();
+    .AddInteractiveServerComponents(); // to ju¿ masz
 
-builder.Services.AddOutputCache();
+// Antiforgery
+builder.Services.AddAntiforgery(); // dodaj tê liniê jeœli jeszcze nie ma
 
-builder.AddMySqlDataSource("MyDatabase", builder =>
+// HTTP klienty, np.:
+builder.Services.AddHttpClient<ReservationApiClient>(client =>
 {
-    builder.ConnectionString = "Server=localhost;Database=san;User ID=oskar;Password=1234;Port=3306;";
+    client.BaseAddress = new Uri("https://localhost:5001");
 });
-
-
-builder.Services.AddScoped<ISaleApiClient, SaleApiClient>();
 
 var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+    app.UseExceptionHandler("/Error");
     app.UseHsts();
 }
 
 app.UseHttpsRedirection();
+app.UseStaticFiles(); // jeœli nie masz, dodaj to
 
-app.UseAntiforgery();
+app.UseRouting();
 
-app.UseOutputCache();
 
-app.MapStaticAssets();
+app.UseAntiforgery(); // ? KLUCZOWE!
 
-app.MapRazorComponents<App>()
-    .AddInteractiveServerRenderMode();
-
-app.MapDefaultEndpoints();
+app.MapRazorComponents<App>() // ? wa¿ne: App z przestrzeni namespace twojego projektu
+   .AddInteractiveServerRenderMode();
 
 app.Run();
